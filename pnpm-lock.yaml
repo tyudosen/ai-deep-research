@@ -17,6 +17,9 @@ importers:
       '@ai-sdk/perplexity':
         specifier: ^1.0.1
         version: 1.1.9(zod@3.25.64)
+      '@t3-oss/env-core':
+        specifier: ^0.13.8
+        version: 0.13.8(zod@3.25.64)
       ai:
         specifier: ^4.1.45
         version: 4.3.16(react@19.1.0)(zod@3.25.64)
@@ -242,6 +245,23 @@ packages:
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
+
+  '@t3-oss/env-core@0.13.8':
+    resolution: {integrity: sha512-L1inmpzLQyYu4+Q1DyrXsGJYCXbtXjC4cICw1uAKv0ppYPQv656lhZPU91Qd1VS6SO/bou1/q5ufVzBGbNsUpw==}
+    peerDependencies:
+      arktype: ^2.1.0
+      typescript: '>=5.0.0'
+      valibot: ^1.0.0-beta.7 || ^1.0.0
+      zod: ^3.24.0 || ^4.0.0-beta.0
+    peerDependenciesMeta:
+      arktype:
+        optional: true
+      typescript:
+        optional: true
+      valibot:
+        optional: true
+      zod:
+        optional: true
 
   '@types/diff-match-patch@1.0.36':
     resolution: {integrity: sha512-xFdR6tkm0MWvBfO8xXCSsinYxHcqkQUlcHeSpMC2ukzOb6lwQAfDmW+Qt0AvlGd8HpsS28qKsB+oPeJn9I39jg==}
@@ -516,6 +536,10 @@ snapshots:
   '@opentelemetry/api@1.9.0': {}
 
   '@standard-schema/spec@1.0.0': {}
+
+  '@t3-oss/env-core@0.13.8(zod@3.25.64)':
+    optionalDependencies:
+      zod: 3.25.64
 
   '@types/diff-match-patch@1.0.36': {}
 
