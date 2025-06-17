@@ -1,15 +1,15 @@
 import "dotenv/config";
-import { Console, Effect } from "effect";
-import { Ai } from "./services/Ai";
+import { Effect } from "effect";
 import { runtime } from "./services/runtime";
+import { WebSearch } from "./services/WebSearch";
 
 const foo = Effect.gen(function* () {
-	const { generateTextEffect } = yield* Ai;
-	const { text } = yield* generateTextEffect
+	const { searchWeb } = yield* WebSearch;
+	const res = yield* searchWeb('When is the next season of Mobland ?')
 
-	yield* Console.log('text', text)
+	yield* Effect.log(res)
 
-	return text
+	return res
 
 })
 

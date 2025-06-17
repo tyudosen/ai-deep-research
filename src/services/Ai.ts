@@ -1,13 +1,8 @@
-import { generateText, generateObject } from "ai"
+import { generateObject } from "ai"
 import { Data, Effect } from "effect"
 import z from "zod"
 import { AiModels } from "./AiModels"
 
-class GenerateTextError extends Data.TaggedError("GenerateTextError")<
-	{
-		data: unknown
-	}
-> { }
 
 class GenerateObjectError extends Data.TaggedError("GenerateTextError")<
 	{
@@ -20,16 +15,6 @@ export class Ai extends Effect.Service<Ai>()(
 	"AiService",
 	{
 		effect: Effect.gen(function* () {
-			const { openai } = yield* AiModels
-
-			const generateTextEffect = Effect.tryPromise({
-				try: () => generateText({
-					model: openai('gpt-4-turbo'),
-					prompt: "What is love?"
-				}),
-				catch: (e) => new GenerateTextError({ data: e })
-			})
-
 			const generateSearchQueries = (query: string, n: number = 3) => Effect.gen(function* () {
 				const { openai } = yield* AiModels;
 				const { object: queries } = yield* Effect.tryPromise({
@@ -48,7 +33,7 @@ export class Ai extends Effect.Service<Ai>()(
 			})
 
 
-			return { generateTextEffect }
+			return { generateSearchQueries }
 		}),
 		dependencies: [AiModels.Default]
 	}
