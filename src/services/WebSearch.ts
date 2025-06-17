@@ -29,6 +29,8 @@ const WebSearchResultSchema = Schema.Struct({
 	)
 )
 
+export type WebSearchResult = typeof WebSearchResultSchema.Type
+
 const webSearchResultDecoder = Schema.decodeUnknown(WebSearchResultSchema)
 
 
