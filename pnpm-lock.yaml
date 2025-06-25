@@ -29,6 +29,9 @@ importers:
       exa-js:
         specifier: ^1.4.10
         version: 1.8.12(zod@3.25.64)
+      langfuse:
+        specifier: ^3.37.5
+        version: 3.37.5
       zod:
         specifier: ^3.24.2
         version: 3.25.64
@@ -330,6 +333,18 @@ packages:
   jsondiffpatch@0.6.0:
     resolution: {integrity: sha512-3QItJOXp2AP1uv7waBkao5nCvhEv+QmJAd38Ybq7wNI74Q+BBmnLn4EDKz6yI9xGAIQoUF87qHt+kc1IVxB4zQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+
+  langfuse-core@3.37.5:
+    resolution: {integrity: sha512-nefmIo2dBiIcO/0/3FCA75C8p0cesoSFeW+h9hstFbCb3H06g71n3kNcVgsQjX2pVHR6t4sgHEtGSURUwDo22Q==}
+    engines: {node: '>=18'}
+
+  langfuse@3.37.5:
+    resolution: {integrity: sha512-kU1bh937RdR59WSCiRj9WHACJkdOg0blM1o5ce6KdFTL8FAYakz132lpewybvKyZBN55Fpg0Ekrk/J0RumE8kg==}
+    engines: {node: '>=18'}
+
+  mustache@4.2.0:
+    resolution: {integrity: sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==}
     hasBin: true
 
   nanoid@3.3.11:
@@ -636,6 +651,16 @@ snapshots:
       '@types/diff-match-patch': 1.0.36
       chalk: 5.4.1
       diff-match-patch: 1.0.5
+
+  langfuse-core@3.37.5:
+    dependencies:
+      mustache: 4.2.0
+
+  langfuse@3.37.5:
+    dependencies:
+      langfuse-core: 3.37.5
+
+  mustache@4.2.0: {}
 
   nanoid@3.3.11: {}
 

@@ -3,6 +3,7 @@ import { Data, Effect, pipe } from "effect"
 import z from "zod"
 import { AiModels } from "./AiModels"
 import { WebSearch, WebSearchResult } from "./WebSearch"
+import { AiTracing } from "./AiTracing"
 
 
 class GenerateObjectError extends Data.TaggedError("GenerateObjectError")<
@@ -25,6 +26,7 @@ export class Ai extends Effect.Service<Ai>()(
 		effect: Effect.gen(function* () {
 			const generateSearchQueries = (query: string, n: number = 3) => Effect.gen(function* () {
 				const { openai } = yield* AiModels;
+				const trace = yield* AiTracing.traceGeneration(query, 'generateSearchQueries');
 				const { object: queries } = yield* Effect.tryPromise({
 					try: () => generateObject({
 						model: openai('o1'),
@@ -36,7 +38,9 @@ export class Ai extends Effect.Service<Ai>()(
 					catch: (e) => new GenerateObjectError({ data: e })
 				})
 
-
+				trace.end({
+					output: queries
+				})
 				return queries
 			})
 

@@ -17,6 +17,7 @@
     "ai": "^4.1.45",
     "effect": "^3.16.7",
     "exa-js": "^1.4.10",
+    "langfuse": "^3.37.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {

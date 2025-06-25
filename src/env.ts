@@ -5,6 +5,9 @@ export const env = createEnv({
 	server: {
 		OPENAI_API_KEY: z.string().min(1),
 		EXA_API_KEY: z.string().min(1),
+		LANGFUSE_SECRET_KEY: z.string().min(1),
+		LANGFUSE_PUBLIC_KEY: z.string().min(1),
+		LANGFUSE_BASE_URL: z.string().url()
 	},
 
 	/**
