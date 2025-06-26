@@ -1,8 +1,8 @@
 import { Config, Effect } from "effect";
 import { Langfuse } from 'langfuse';
+import { TRACE_NAMES, OPENAI_MODELS } from "../constants";
 
-export class AiTracing extends Effect.Service<AiTracing>()(
-	"AiTracing",
+export class AiTracing extends Effect.Service<AiTracing>()("AiTracing",
 	{
 		effect: Effect.gen(function* () {
 
@@ -19,14 +19,14 @@ export class AiTracing extends Effect.Service<AiTracing>()(
 			});
 
 			const trace = langfuse.trace({
-				name: "deep-research-service",
+				name: TRACE_NAMES.DEEP_RESEARCH_SERVICE,
 			});
 
 
 			const traceGeneration = (input: string, name: string | undefined) => Effect.gen(function* () {
 				return trace.generation({
 					name,
-					model: "o1",
+					model: OPENAI_MODELS.O1,
 					// modelParameters: {
 					// 	temperature: 0.9,
 					// 	maxTokens: 2000,
