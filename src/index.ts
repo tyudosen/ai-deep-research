@@ -1,16 +1,19 @@
 import "dotenv/config";
-import { Console, Effect } from "effect";
-import { Ai } from "./services/Ai";
+import { Effect } from "effect";
 import { runtime } from "./services/runtime";
+import { WebSearch } from "./services/WebSearch";
+import { Ai } from "./services/Ai";
 
 const foo = Effect.gen(function* () {
-	const { generateTextEffect } = yield* Ai;
-	const { text } = yield* generateTextEffect
+	const { generateSearchQueries, searchAndProcess } = yield* Ai
 
-	yield* Console.log('text', text)
+	const { queries } = yield* generateSearchQueries('Explain the difference between romanesco and standard italian')
 
-	return text
-
+	for (const query of queries) {
+		yield* Effect.log(`Searching ${query}`)
+		const searchResults = yield* searchAndProcess(query)
+		yield* Effect.log(searchResults)
+	}
 })
 
 

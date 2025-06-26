@@ -17,6 +17,9 @@ importers:
       '@ai-sdk/perplexity':
         specifier: ^1.0.1
         version: 1.1.9(zod@3.25.64)
+      '@t3-oss/env-core':
+        specifier: ^0.13.8
+        version: 0.13.8(zod@3.25.64)
       ai:
         specifier: ^4.1.45
         version: 4.3.16(react@19.1.0)(zod@3.25.64)
@@ -26,6 +29,9 @@ importers:
       exa-js:
         specifier: ^1.4.10
         version: 1.8.12(zod@3.25.64)
+      langfuse:
+        specifier: ^3.37.5
+        version: 3.37.5
       zod:
         specifier: ^3.24.2
         version: 3.25.64
@@ -243,6 +249,23 @@ packages:
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
 
+  '@t3-oss/env-core@0.13.8':
+    resolution: {integrity: sha512-L1inmpzLQyYu4+Q1DyrXsGJYCXbtXjC4cICw1uAKv0ppYPQv656lhZPU91Qd1VS6SO/bou1/q5ufVzBGbNsUpw==}
+    peerDependencies:
+      arktype: ^2.1.0
+      typescript: '>=5.0.0'
+      valibot: ^1.0.0-beta.7 || ^1.0.0
+      zod: ^3.24.0 || ^4.0.0-beta.0
+    peerDependenciesMeta:
+      arktype:
+        optional: true
+      typescript:
+        optional: true
+      valibot:
+        optional: true
+      zod:
+        optional: true
+
   '@types/diff-match-patch@1.0.36':
     resolution: {integrity: sha512-xFdR6tkm0MWvBfO8xXCSsinYxHcqkQUlcHeSpMC2ukzOb6lwQAfDmW+Qt0AvlGd8HpsS28qKsB+oPeJn9I39jg==}
 
@@ -310,6 +333,18 @@ packages:
   jsondiffpatch@0.6.0:
     resolution: {integrity: sha512-3QItJOXp2AP1uv7waBkao5nCvhEv+QmJAd38Ybq7wNI74Q+BBmnLn4EDKz6yI9xGAIQoUF87qHt+kc1IVxB4zQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+
+  langfuse-core@3.37.5:
+    resolution: {integrity: sha512-nefmIo2dBiIcO/0/3FCA75C8p0cesoSFeW+h9hstFbCb3H06g71n3kNcVgsQjX2pVHR6t4sgHEtGSURUwDo22Q==}
+    engines: {node: '>=18'}
+
+  langfuse@3.37.5:
+    resolution: {integrity: sha512-kU1bh937RdR59WSCiRj9WHACJkdOg0blM1o5ce6KdFTL8FAYakz132lpewybvKyZBN55Fpg0Ekrk/J0RumE8kg==}
+    engines: {node: '>=18'}
+
+  mustache@4.2.0:
+    resolution: {integrity: sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==}
     hasBin: true
 
   nanoid@3.3.11:
@@ -517,6 +552,10 @@ snapshots:
 
   '@standard-schema/spec@1.0.0': {}
 
+  '@t3-oss/env-core@0.13.8(zod@3.25.64)':
+    optionalDependencies:
+      zod: 3.25.64
+
   '@types/diff-match-patch@1.0.36': {}
 
   '@types/node@22.15.31':
@@ -612,6 +651,16 @@ snapshots:
       '@types/diff-match-patch': 1.0.36
       chalk: 5.4.1
       diff-match-patch: 1.0.5
+
+  langfuse-core@3.37.5:
+    dependencies:
+      mustache: 4.2.0
+
+  langfuse@3.37.5:
+    dependencies:
+      langfuse-core: 3.37.5
+
+  mustache@4.2.0: {}
 
   nanoid@3.3.11: {}
 
