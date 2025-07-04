@@ -1,11 +1,28 @@
-import { generateObject, generateText, tool } from "ai"
-import { Data, Effect, pipe } from "effect"
+import {
+	generateObject,
+	generateText,
+	tool
+} from "ai"
+import {
+	Data,
+	Effect,
+	pipe
+} from "effect"
 import z from "zod"
 import { AiModels } from "./AiModels"
-import { WebSearch, WebSearchResult } from "./WebSearch"
+import {
+	WebSearch,
+	WebSearchResult
+} from "./WebSearch"
 import { AiTracing } from "./AiTracing"
-import { ERROR_TYPES, OPENAI_MODELS, TRACE_NAMES, SEARCH_CONFIG } from "../constants"
-import { SYSTEM_PROMPTS, TOOL_DESCRIPTIONS } from "../constants/prompts"
+import {
+	ERROR_TYPES,
+	OPENAI_MODELS,
+	TRACE_NAMES,
+	SEARCH_CONFIG,
+	SYSTEM_PROMPTS,
+	TOOL_DESCRIPTIONS
+} from "../constants"
 
 
 class GenerateObjectError extends Data.TaggedError(ERROR_TYPES.GENERATE_OBJECT_ERROR)<
@@ -28,6 +45,7 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 			const generateSearchQueries = (query: string, n: number = SEARCH_CONFIG.DEFAULT_SEARCH_QUERIES_COUNT) => Effect.gen(function* () {
 				const { openai } = yield* AiModels;
 				const trace = yield* AiTracing.traceGeneration(query, TRACE_NAMES.GENERATE_SEARCH_QUERIES);
+
 				const { object: queries } = yield* Effect.tryPromise({
 					try: () => generateObject({
 						model: openai(OPENAI_MODELS.O1),
@@ -42,6 +60,7 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 				trace.end({
 					output: queries
 				})
+
 				return queries
 			})
 
@@ -52,6 +71,8 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 				const finalSearchResults: WebSearchResult[] = []
 				const { openai } = yield* AiModels;
 				const { searchWeb } = yield* WebSearch;
+				const trace = yield* AiTracing.traceGeneration(query, TRACE_NAMES.SEARCH_AND_PROCESS);
+
 
 
 				return yield* Effect.tryPromise({
@@ -70,6 +91,7 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 									query,
 									searchWeb,
 									Effect.tap((res) => pendingSearchResults.push(...res)),
+									Effect.tap((output) => { trace.end({ output }) }),
 									Effect.andThen((res) => res),
 									Effect.runPromise
 								)
@@ -86,4 +108,7 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 		dependencies: [AiModels.Default]
 	}
 ) { }
+
+
+const foo = Ai.Default
 
