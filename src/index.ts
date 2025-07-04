@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Effect } from "effect";
+import { Effect, Console } from "effect";
 import { runtime } from "./services/runtime";
 import { WebSearch } from "./services/WebSearch";
 import { Ai } from "./services/Ai";
@@ -14,6 +14,11 @@ const foo = Effect.gen(function* () {
 		const searchResults = yield* searchAndProcess(query)
 		yield* Effect.log(searchResults)
 	}
+})
+
+const test = Effect.fn(function* (x: string) {
+	yield* Console.log(x)
+
 })
 
 

@@ -18,7 +18,8 @@ export const OPENAI_MODELS: Record<string, OpenAIChatModelId> = {
 // Tracing names
 export const TRACE_NAMES = {
 	DEEP_RESEARCH_SERVICE: "deep-research-service",
-	GENERATE_SEARCH_QUERIES: "generateSearchQueries"
+	GENERATE_SEARCH_QUERIES: "generateSearchQueries",
+	SEARCH_AND_PROCESS: "searchAndProcess"
 } as const;
 
 
