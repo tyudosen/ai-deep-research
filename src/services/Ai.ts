@@ -1,10 +1,6 @@
+import { tool } from "ai"
+import { generateEnum, generateObject, generateText } from "./utils"
 import {
-	generateObject,
-	generateText,
-	tool
-} from "ai"
-import {
-	Data,
 	Effect,
 	pipe
 } from "effect"
@@ -14,28 +10,13 @@ import {
 	WebSearch,
 	WebSearchResult
 } from "./WebSearch"
-import { AiTracing } from "./AiTracing"
 import {
-	ERROR_TYPES,
 	OPENAI_MODELS,
-	TRACE_NAMES,
 	SEARCH_CONFIG,
 	SYSTEM_PROMPTS,
-	TOOL_DESCRIPTIONS
+	TOOL_DESCRIPTIONS,
+	PROMPTS
 } from "../constants"
-
-
-class GenerateObjectError extends Data.TaggedError(ERROR_TYPES.GENERATE_OBJECT_ERROR)<
-	{
-		data: unknown
-	}
-> { }
-
-class GenerateTextError extends Data.TaggedError(ERROR_TYPES.GENERATE_TEXT_ERROR)<
-	{
-		data: unknown
-	}
-> { }
 
 
 
@@ -44,22 +25,14 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 		effect: Effect.gen(function* () {
 			const generateSearchQueries = (query: string, n: number = SEARCH_CONFIG.DEFAULT_SEARCH_QUERIES_COUNT) => Effect.gen(function* () {
 				const { openai } = yield* AiModels;
-				const trace = yield* AiTracing.traceGeneration(query, TRACE_NAMES.GENERATE_SEARCH_QUERIES);
 
-				const { object: queries } = yield* Effect.tryPromise({
-					try: () => generateObject({
-						model: openai(OPENAI_MODELS.O1),
-						prompt: `Generate ${n} search queries for the following query: ${query}`,
-						schema: z.object({
-							queries: z.array(z.string()).min(SEARCH_CONFIG.MIN_QUERIES).max(SEARCH_CONFIG.MAX_QUERIES),
-						})
-					}),
-					catch: (e) => new GenerateObjectError({ data: e })
-				})
+				const { object: queries } = yield* generateObject({
+					model: openai(OPENAI_MODELS.O1),
+					prompt: `Generate ${n} search queries for the following query: ${query}`,
 
-				trace.end({
-					output: queries
-				})
+				}, z.object({
+					queries: z.array(z.string()).min(SEARCH_CONFIG.MIN_QUERIES).max(SEARCH_CONFIG.MAX_QUERIES),
+				}))
 
 				return queries
 			})
@@ -71,35 +44,55 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 				const finalSearchResults: WebSearchResult[] = []
 				const { openai } = yield* AiModels;
 				const { searchWeb } = yield* WebSearch;
-				const trace = yield* AiTracing.traceGeneration(query, TRACE_NAMES.SEARCH_AND_PROCESS);
 
 
 
-				return yield* Effect.tryPromise({
-					try: () => generateText({
-						model: openai(OPENAI_MODELS.O1),
-						prompt: `Search the web for information about ${query}`,
-						system: SYSTEM_PROMPTS.RESEARCHER,
-						maxSteps: SEARCH_CONFIG.MAX_STEPS,
-						tools: {
-							searchWeb: tool({
-								description: TOOL_DESCRIPTIONS.SEARCH_WEB,
-								parameters: z.object({
-									query: z.string().min(1),
-								}),
-								execute: ({ query }) => pipe(
-									query,
-									searchWeb,
-									Effect.tap((res) => pendingSearchResults.push(...res)),
-									Effect.tap((output) => { trace.end({ output }) }),
-									Effect.andThen((res) => res),
-									Effect.runPromise
-								)
-							})
-						}
-					}),
-					catch: (e) => new GenerateTextError({ data: e })
+				return yield* generateText({
+					model: openai(OPENAI_MODELS.O1),
+					prompt: `Search the web for information about ${query}`,
+					system: SYSTEM_PROMPTS.RESEARCHER,
+					maxSteps: SEARCH_CONFIG.MAX_STEPS,
+					tools: {
+						searchWeb: tool({
+							description: TOOL_DESCRIPTIONS.SEARCH_WEB,
+							parameters: z.object({
+								queryParam: z.string().min(1),
+							}),
+							execute: ({ queryParam }) => pipe(
+								queryParam,
+								searchWeb,
+								Effect.tap((res) => pendingSearchResults.push(...res)),
+								Effect.andThen((res) => res),
+								Effect.runPromise
+							)
+						}),
+						evaluate: tool({
+							description: TOOL_DESCRIPTIONS.EVALUATE,
+							parameters: z.object({}),
+							execute: () => Effect.gen(function* () {
+								const pendingResult = pendingSearchResults.pop()!
+								const { object: evaluation } = yield* generateEnum({
+									model: openai(OPENAI_MODELS.O1),
+									prompt: PROMPTS.EVALUATE_QUERIES({ query, pendingResult })
+								}, ['relevant', 'irrelevant'])
+
+								if (evaluation === 'relevant') {
+									finalSearchResults.push(pendingResult)
+								}
+
+								yield* Effect.log('Found:', pendingResult.url)
+								yield* Effect.log('Evaluation completed:', evaluation)
+
+								return evaluation === 'irrelevant'
+									? 'Search results are irrelevant. Please search again with a more specific query.'
+									: 'Search results are relevant. End research for this query.'
+
+							}).pipe(Effect.runPromise)
+						})
+					}
+
 				})
+
 			})
 
 
@@ -110,5 +103,4 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 ) { }
 
 
-const foo = Ai.Default
 
