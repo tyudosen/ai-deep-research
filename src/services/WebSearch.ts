@@ -1,6 +1,5 @@
 import { Data, Effect, pipe, Schema, Config } from "effect";
 import Exa from 'exa-js'
-import { env } from "../env";
 import { ERROR_TYPES, SEARCH_CONFIG } from "../constants";
 
 const WebSearchResultSchema = Schema.Struct({

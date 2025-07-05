@@ -9,7 +9,7 @@ export const ERROR_TYPES = {
 } as const;
 
 // AI Model types
-export const OPENAI_MODELS: Record<string, OpenAIChatModelId> = {
+export const OPENAI_MODELS = {
 	GPT_4O_MINI: "gpt-4o-mini",
 	GPT_4_TURBO: "gpt-4-turbo",
 	O1: "o1"
