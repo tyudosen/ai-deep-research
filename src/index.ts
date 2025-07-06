@@ -1,29 +1,34 @@
 import "dotenv/config";
-import { Effect, Console } from "effect";
+import { Effect } from "effect";
 import { runtime } from "./services/runtime";
-import { WebSearch } from "./services/WebSearch";
 import { Ai } from "./services/Ai";
+import { sdk } from "../instrumentation";
 
-const foo = Effect.gen(function* () {
-	const { generateSearchQueries, searchAndProcess } = yield* Ai
+const deepResearch = Effect.fn('deep-research')(function* (
+	query: string,
+	depth: number = 1,
+	breadth: number = 3
+) {
+	const { generateSearchQueries, searchAndProcess, generateLearnings } = yield* Ai
 
-	const { queries } = yield* generateSearchQueries('Explain the difference between romanesco and standard italian')
+	const { queries } = yield* generateSearchQueries(query)
 
 	for (const query of queries) {
-		yield* Effect.log(`Searching ${query}`)
+		yield* Effect.log(`Searching the web for: ${query}`)
 		const searchResults = yield* searchAndProcess(query)
-		yield* Effect.log(searchResults)
+		for (const searchResult of searchResults) {
+			console.log(`Processing search result: ${searchResult.url}`)
+			const learnings = yield* generateLearnings(query, searchResult)
+			// call deepResearch recursively with decrementing depth and breadth
+		}
 	}
 })
 
-const test = Effect.fn(function* (x: string) {
-	yield* Console.log(x)
-
-})
 
 
 const main = async () => {
-	runtime.runPromise(foo)
+	const prompt = "What does it take to learn an new language fast ?"
+	const research = runtime.runPromise(deepResearch(prompt))
 }
 
 main()
