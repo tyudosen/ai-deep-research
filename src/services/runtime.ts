@@ -8,7 +8,7 @@ const LiveConfigProvider = Layer.setConfigProvider(
 	ConfigProvider.fromMap(liveConfig)
 )
 
-const appLayers = Layer.mergeAll(
+export const appLayers = Layer.mergeAll(
 	AiModels.Default,
 	Ai.Default,
 	WebSearch.Default,
