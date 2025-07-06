@@ -1,3 +1,5 @@
+import { WebSearchResult } from "../services/WebSearch";
+
 // System prompts
 export const SYSTEM_PROMPTS = {
         RESEARCHER: `You are a researcher. For each query, search the web and then evaluate
@@ -11,11 +13,18 @@ export const TOOL_DESCRIPTIONS = {
 } as const;
 
 export const PROMPTS = {
-        EVALUATE_QUERIES: ({ query, pendingResult }) => `Evaluate whether the search results are relevant and will help answer the following query: ${query}. If the page already exists in the existing results, mark it as irrelevant.
+        EVALUATE_QUERIES: ({ query, pendingResult }: { query: string; pendingResult: WebSearchResult }) => `Evaluate whether the search results are relevant and will help answer the following query: ${query}. If the page already exists in the existing results, mark it as irrelevant.
  
             <search_results>
             ${JSON.stringify(pendingResult)}
             </search_results>
             `,
+        GENERATE_LEARNINGS: ({ searchResult, query }: { searchResult: WebSearchResult; query: string }) => `The user is researching "${query}". The following search result were deemed relevant.
+    Generate a learning and a follow-up question from the following search result:
+ 
+    <search_result>
+    ${JSON.stringify(searchResult)}
+    </search_result>
+    `,
 
 } as const

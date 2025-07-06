@@ -2,7 +2,8 @@ import { tool } from "ai"
 import { generateEnum, generateObject, generateText } from "./utils"
 import {
 	Effect,
-	pipe
+	pipe,
+	Schema
 } from "effect"
 import z from "zod"
 import { AiModels } from "./AiModels"
@@ -18,12 +19,28 @@ import {
 	PROMPTS
 } from "../constants"
 
+const GenerateSearchQueriesObject = Schema.Struct({
+	queries: Schema.Array(Schema.String).pipe(Schema.minItems(SEARCH_CONFIG.MIN_QUERIES), Schema.maxItems(SEARCH_CONFIG.MAX_QUERIES))
+})
+const generateSearchQueriesObjectDecoder = Schema.decodeUnknown(GenerateSearchQueriesObject)
+
+const GenerateLearningsObject = Schema.Struct({
+	learning: Schema.String,
+	followUpQuestions: Schema.Array(Schema.String)
+})
+const generateLearningsObjectDecoder = Schema.decodeUnknown(GenerateLearningsObject)
+
+// const ToolParameterObject = Schema.Struct({
+// 	queryParam: Schema.String.pipe(Schema.minLength(1))
+// })
+// const toolParameterObjectDecoder = Schema.decodeUnknown(ToolParameterObject)
+
 
 
 export class Ai extends Effect.Service<Ai>()("AiService",
 	{
 		effect: Effect.gen(function* () {
-			const generateSearchQueries = (query: string, n: number = SEARCH_CONFIG.DEFAULT_SEARCH_QUERIES_COUNT) => Effect.gen(function* () {
+			const generateSearchQueries = Effect.fn("generateSearchQueries")(function* (query: string, n: number = SEARCH_CONFIG.DEFAULT_SEARCH_QUERIES_COUNT) {
 				const { openai } = yield* AiModels;
 
 				const { object: queries } = yield* generateObject({
@@ -32,14 +49,14 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 
 				}, z.object({
 					queries: z.array(z.string()).min(SEARCH_CONFIG.MIN_QUERIES).max(SEARCH_CONFIG.MAX_QUERIES),
-				}))
+				}), {
+					calledFrom: 'ai-service-generateSearchQueries-function'
+				})
 
-				return queries
+				return yield* generateSearchQueriesObjectDecoder(queries)
 			})
 
-
-			const searchAndProcess = (query: string) => Effect.gen(function* () {
-
+			const searchAndProcess = Effect.fn("searchAndProcess")(function* (query: string) {
 				const pendingSearchResults: WebSearchResult[] = []
 				const finalSearchResults: WebSearchResult[] = []
 				const { openai } = yield* AiModels;
@@ -47,7 +64,7 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 
 
 
-				return yield* generateText({
+				yield* generateText({
 					model: openai(OPENAI_MODELS.O1),
 					prompt: `Search the web for information about ${query}`,
 					system: SYSTEM_PROMPTS.RESEARCHER,
@@ -74,7 +91,9 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 								const { object: evaluation } = yield* generateEnum({
 									model: openai(OPENAI_MODELS.O1),
 									prompt: PROMPTS.EVALUATE_QUERIES({ query, pendingResult })
-								}, ['relevant', 'irrelevant'])
+								}, ['relevant', 'irrelevant'], {
+									calledFrom: 'ai-service-evaluate-tool-function'
+								})
 
 								if (evaluation === 'relevant') {
 									finalSearchResults.push(pendingResult)
@@ -91,12 +110,35 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 						})
 					}
 
+				}, {
+					calledFrom: 'ai-service-searchAndProcess-function'
 				})
+
+				return finalSearchResults;
+
+			})
+
+			const generateLearnings = Effect.fn("generate-learnings-ai-service")(function* (query: string, searchResult: WebSearchResult) {
+				const { object: learnings } = yield* generateObject({
+					prompt: PROMPTS.GENERATE_LEARNINGS({ query, searchResult })
+				}, z.object({
+					learning: z.string(),
+					followUpQuestions: z.array(z.string())
+				}), {
+					calledFrom: 'ai-service-generateLearnings-function'
+				})
+
+
+				return yield* generateLearningsObjectDecoder(learnings)
 
 			})
 
 
-			return { generateSearchQueries, searchAndProcess }
+			return {
+				generateSearchQueries,
+				searchAndProcess,
+				generateLearnings
+			}
 		}),
 		dependencies: [AiModels.Default]
 	}
