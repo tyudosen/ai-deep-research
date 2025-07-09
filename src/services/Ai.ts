@@ -98,7 +98,9 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 						}),
 						evaluate: tool({
 							description: TOOL_DESCRIPTIONS.EVALUATE,
-							parameters: z.object({}),
+							parameters: z.object({
+								searchResult: z.string().describe('The serarch result returned from searchWeb')
+							}),
 							execute: (): Promise<string> => Effect.gen(function* () {
 								const pendingResult = pendingSearchResults.pop()!
 								const { object: evaluation } = yield* generateEnum({
