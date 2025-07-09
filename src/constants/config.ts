@@ -1,19 +1,17 @@
-import { OpenAIChatModelId } from "@ai-sdk/openai/internal";
 
 // Error types
 export const ERROR_TYPES = {
-	WEB_SEARCH_ERROR: "WebSearchErrr",
-	WEB_SEARCH_RESULT_DECODE_ERROR: "WebSearchErrr",
+	WEB_SEARCH_ERROR: "WebSearchError",
+	WEB_SEARCH_RESULT_DECODE_ERROR: "WebSearchResultDecodeError",
 	GENERATE_OBJECT_ERROR: "GenerateObjectError",
 	GENERATE_TEXT_ERROR: "GenerateTextError"
 } as const;
 
 // AI Model types
 export const OPENAI_MODELS = {
-	GPT_4O_MINI: "gpt-4o-mini",
 	GPT_4_TURBO: "gpt-4-turbo",
 	O1: "o1"
-} as const;
+};
 
 // Tracing names
 export const TRACE_NAMES = {
@@ -30,5 +28,6 @@ export const SEARCH_CONFIG = {
 	MAX_STEPS: 5,
 	DEFAULT_SEARCH_QUERIES_COUNT: 3,
 	MIN_QUERIES: 1,
-	MAX_QUERIES: 5
+	MAX_QUERIES: 5,
+	DEFAULT_DEPTH: 3
 } as const;

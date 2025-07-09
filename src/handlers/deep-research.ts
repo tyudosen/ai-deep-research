@@ -1,33 +1,96 @@
-import { Effect, Layer } from "effect";
+import { Effect, Layer, pipe } from "effect";
 import { HttpApiBuilder } from "@effect/platform";
 import { DeepResearchApi } from "../api/deep-research";
 import { appLayers, runtime } from "../services/runtime";
 import { Ai } from "../services/Ai";
 import { HttpApiDecodeError } from "@effect/platform/HttpApiError";
+import { Research, SEARCH_CONFIG, PROMPTS } from "../constants";
+import { AiModels } from "../services/AiModels";
+import { generateReport } from "../services/utils";
+import { WebSearch } from "../services/WebSearch";
 
-const deepResearch = Effect.fn('deep-research')(function* (
-	query: string,
-	depth: number = 1,
-	breadth: number = 3
+const deepResearch: (
+	prompt: string,
+	depth?: number | undefined,
+	breadth?: number | undefined,
+	accumulatedResearch?: Research
+) => Effect.Effect<
+	Research,
+	never,
+	Ai | AiModels | WebSearch
+> = Effect.fn('deep-research')(function* (
+	prompt: string,
+	depth: number = SEARCH_CONFIG.DEFAULT_DEPTH,
+	breadth: number = 3,
+	accumulatedResearch: Research = {
+		query: undefined,
+		queries: [],
+		searchResults: [],
+		learnings: [],
+		completedQueries: [],
+	}
 ) {
-	const { generateSearchQueries, searchAndProcess, generateLearnings } = yield* Ai
-	const res = [];
 
-	const { queries } = yield* generateSearchQueries(query)
+	if (!accumulatedResearch.query) {
+		accumulatedResearch.query = prompt
+	}
 
+	if (depth === 0) {
+		yield* Effect.log(`depth is 0`)
+		return accumulatedResearch
+	}
+
+	const {
+		generateSearchQueries,
+		searchAndProcess,
+		generateLearnings
+	} = yield* Ai;
+
+	const { queries } = yield* generateSearchQueries(
+		prompt,
+		breadth
+	)
+
+	accumulatedResearch.queries = queries;
+
+	// Process all queries and collect results first
 	for (const query of queries) {
 		yield* Effect.log(`Searching the web for: ${query}`)
-		const searchResults = yield* searchAndProcess(query)
+		const searchResults = yield* searchAndProcess(
+			query,
+			accumulatedResearch.searchResults
+		)
+		accumulatedResearch.searchResults.push(
+			...searchResults
+		)
+
+		// Process all search results for this query
 		for (const searchResult of searchResults) {
-			console.log(`Processing search result: ${searchResult.url}`)
+			yield* Effect.log(`Processing search result: ${searchResult.url}`)
 			const learnings = yield* generateLearnings(query, searchResult)
-			// call deepResearch recursively with decrementing depth and breadth
-			res.push(learnings)
+
+			accumulatedResearch.learnings.push(learnings)
+			accumulatedResearch.completedQueries.push(query)
 		}
 	}
 
-	return res;
+	// Make single recursive call with all accumulated learnings
+	if (accumulatedResearch.learnings.length > 0) {
+		const allLearnings = accumulatedResearch.learnings[accumulatedResearch.learnings.length - 1]
+		const newQuery = PROMPTS.DEEP_RESEARCH({ prompt, accumulatedResearch, learnings: allLearnings })
+
+		// More aggressive breadth reduction: each level focuses research more narrowly
+		const nextBreadth = Math.max(1, breadth - 1)
+		accumulatedResearch = yield* deepResearch(newQuery, depth - 1, nextBreadth, accumulatedResearch)
+	}
+
+	yield* Effect.log(`Accumulated research: ${JSON.stringify(accumulatedResearch)}`)
+
+	return accumulatedResearch
 })
+
+
+
 
 
 
@@ -38,11 +101,31 @@ export const DeepResearchApiGroupLive = HttpApiBuilder.group(DeepResearchApi, "D
 	handlers.handle(
 		"research",
 		({ urlParams }) => {
-			const prompt = urlParams.query;
-			return deepResearch(prompt).pipe(Effect.mapError(() => new HttpApiDecodeError({
-				message: 'test',
-				issues: []
-			})))
+			const prompt = urlParams.query
+			let research: any = {};
+			const program = pipe(
+				prompt,
+				deepResearch,
+				Effect.tap((res) => { research = res; return; }),
+				Effect.flatMap((research) => generateReport(research, {
+					calledFrom: 'index.ts'
+				}))
+			)
+
+			const response = pipe(
+				program,
+				Effect.flatMap((res) => Effect.succeed({
+					research,
+					report: res
+				})),
+				Effect.mapError((e) => new HttpApiDecodeError({
+					issues: [],
+					message: e.message
+				}))
+
+			)
+
+			return response
 
 		}
 	)

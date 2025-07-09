@@ -62,6 +62,7 @@ export class WebSearch extends Effect.Service<WebSearch>()("WebSearch",
 					}),
 					catch: (e) => new WebSearchError({ cause: e })
 				}),
+				Effect.tap(({ results }) => Effect.log(`webSearch results: ${results.length}`)),
 				Effect.flatMap(({ results }) =>
 					Effect.all(
 						results.map((r) =>
@@ -70,7 +71,8 @@ export class WebSearch extends Effect.Service<WebSearch>()("WebSearch",
 							)
 						)
 					)
-				)
+				),
+				Effect.catchAll(() => Effect.succeed([]))
 			)
 
 

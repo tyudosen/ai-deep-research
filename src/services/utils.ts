@@ -1,6 +1,6 @@
 import { generateObject as aiGenerateObject, generateText as aiGenerateText } from "ai";
 import { Data, Effect } from "effect";
-import { ERROR_TYPES, OPENAI_MODELS } from "../constants";
+import { ERROR_TYPES, OPENAI_MODELS, Research } from "../constants";
 import { ZodSchema } from "zod";
 import { AiModels } from "./AiModels";
 import { randomUUID } from "crypto";
@@ -51,7 +51,7 @@ export const generateObject = Effect.fn("generateObject")(function* (options: Op
 
 			const res = aiGenerateObject({
 				...options,
-				model: openai(OPENAI_MODELS.O1),
+				model: openai('gpt-4.1-mini'),
 				output: 'object',
 				schema,
 				experimental_telemetry: {
@@ -124,3 +124,28 @@ export const generateText = Effect.fn("generateText")(function* (options: Genera
 		catch: (error) => new GenerateTextError({ error })
 	})
 })
+
+export const generateReport = Effect.fn('generate-report')(function* (research: Research, metadata: TraceMetadata) {
+	const { openai } = yield* AiModels;
+	const { text } = yield* generateText({
+		model: openai('gpt-4.1-mini'),
+		prompt: 'Generate a report based on the following research data:\n\n' +
+			JSON.stringify(research, null, 2),
+		experimental_telemetry: {
+			isEnabled: true,
+			functionId: `generate-object-function-${randomUUID()}`,
+			metadata: {
+				...metadata,
+				langfuseTraceId: parentTraceId,
+				langfuseUpdateParent: false
+			}
+		},
+	}, {
+		calledFrom: 'generate-report-ai-service'
+	})
+
+	return text
+
+
+})
+

@@ -24,6 +24,7 @@
     "exa-js": "^1.8.19",
     "langfuse": "^3.38.2",
     "langfuse-vercel": "^3.38.2",
+    "ollama-ai-provider": "^1.2.0",
     "zod": "^3.25.74"
   },
   "devDependencies": {
