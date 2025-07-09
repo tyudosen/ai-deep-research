@@ -3,3 +3,5 @@ node_modules
 .direnv/
 .envrc
 .mcp.json
+dist/
+BLOG.md

@@ -1,4 +1,4 @@
-import "dotenv/config";
+import './instrumentation'
 import { startServer } from "./server";
 
 

@@ -11,13 +11,12 @@ import {
 	WebSearchResult
 } from "./WebSearch"
 import {
-	OPENAI_MODELS,
 	SEARCH_CONFIG,
 	SYSTEM_PROMPTS,
 	TOOL_DESCRIPTIONS,
-	PROMPTS,
-	Research
+	PROMPTS
 } from "../constants"
+import { runtime } from "./runtime"
 
 const GenerateSearchQueriesObject = Schema.Struct({
 	queries: Schema.Array(Schema.String).pipe(Schema.minItems(SEARCH_CONFIG.MIN_QUERIES), Schema.maxItems(SEARCH_CONFIG.MAX_QUERIES))
@@ -98,7 +97,7 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 						evaluate: tool({
 							description: TOOL_DESCRIPTIONS.EVALUATE,
 							parameters: z.object({}),
-							execute: () => Effect.gen(function* () {
+							execute: (): Promise<string> => Effect.gen(function* () {
 								const pendingResult = pendingSearchResults.pop()!
 								const { object: evaluation } = yield* generateEnum({
 									model: openai('gpt-4.1-mini'),
@@ -127,7 +126,7 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 										return Effect.succeed('GenerateObjectError so this result is irrelevant')
 									}
 								}),
-								Effect.runPromise)
+								runtime.runPromise)
 						})
 					}
 

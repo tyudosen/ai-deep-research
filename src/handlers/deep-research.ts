@@ -1,7 +1,7 @@
 import { Effect, Layer, pipe } from "effect";
 import { HttpApiBuilder } from "@effect/platform";
 import { DeepResearchApi } from "../api/deep-research";
-import { appLayers, runtime } from "../services/runtime";
+import { appLayers } from "../services/runtime";
 import { Ai } from "../services/Ai";
 import { HttpApiDecodeError } from "@effect/platform/HttpApiError";
 import { Research, SEARCH_CONFIG, PROMPTS } from "../constants";
@@ -77,11 +77,13 @@ const deepResearch: (
 	// Make single recursive call with all accumulated learnings
 	if (accumulatedResearch.learnings.length > 0) {
 		const allLearnings = accumulatedResearch.learnings[accumulatedResearch.learnings.length - 1]
-		const newQuery = PROMPTS.DEEP_RESEARCH({ prompt, accumulatedResearch, learnings: allLearnings })
+		if (allLearnings) {
+			const newQuery = PROMPTS.DEEP_RESEARCH({ prompt, accumulatedResearch, learnings: allLearnings })
 
-		// More aggressive breadth reduction: each level focuses research more narrowly
-		const nextBreadth = Math.max(1, breadth - 1)
-		accumulatedResearch = yield* deepResearch(newQuery, depth - 1, nextBreadth, accumulatedResearch)
+			// More aggressive breadth reduction: each level focuses research more narrowly
+			const nextBreadth = Math.max(1, breadth - 1)
+			accumulatedResearch = yield* deepResearch(newQuery, depth - 1, nextBreadth, accumulatedResearch)
+		}
 	}
 
 	yield* Effect.log(`Accumulated research: ${JSON.stringify(accumulatedResearch)}`)
