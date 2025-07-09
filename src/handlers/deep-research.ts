@@ -1,13 +1,14 @@
 import { Effect, Layer, pipe } from "effect";
 import { HttpApiBuilder } from "@effect/platform";
-import { DeepResearchApi } from "../api/deep-research";
-import { appLayers } from "../services/runtime";
-import { Ai } from "../services/Ai";
+import { DeepResearchApi } from "../api/deep-research.js";
+import { appLayers } from "../services/runtime.js";
+import { Ai } from "../services/Ai.js";
 import { HttpApiDecodeError } from "@effect/platform/HttpApiError";
-import { Research, SEARCH_CONFIG, PROMPTS } from "../constants";
-import { AiModels } from "../services/AiModels";
-import { generateReport } from "../services/utils";
-import { WebSearch } from "../services/WebSearch";
+import type { Research } from "../constants/index.js";
+import { SEARCH_CONFIG, PROMPTS } from "../constants/index.js";
+import { AiModels } from "../services/AiModels.js";
+import { generateReport } from "../services/utils.js";
+import { WebSearch } from "../services/WebSearch.js";
 
 const deepResearch: (
 	prompt: string,

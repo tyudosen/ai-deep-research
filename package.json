@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A production-ready Node.js service.",
   "main": "dist/index.js",
-  "type": "commonjs",
+  "type": "module",
   "files": [
     "dist"
   ],
@@ -30,7 +30,7 @@
     "@t3-oss/env-core": "^0.13.8",
     "ai": "^4.3.17",
     "effect": "^3.16.12",
-    "exa-js": "^1.8.19",
+    "exa-js": "^1.0.12",
     "langfuse": "^3.38.4",
     "langfuse-vercel": "^3.38.4",
     "ollama-ai-provider": "^1.2.0",

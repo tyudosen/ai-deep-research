@@ -1,8 +1,9 @@
 import { generateObject as aiGenerateObject, generateText as aiGenerateText } from "ai";
 import { Data, Effect } from "effect";
-import { ERROR_TYPES, Research } from "../constants";
+import { ERROR_TYPES } from "../constants/index.js";
+import type { Research } from "../constants/index.js";
 import { ZodSchema } from "zod";
-import { AiModels } from "./AiModels";
+import { AiModels } from "./AiModels.js";
 import { randomUUID } from "crypto";
 import { Langfuse } from "langfuse";
 

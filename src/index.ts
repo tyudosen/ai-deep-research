@@ -1,5 +1,5 @@
-import './instrumentation'
-import { startServer } from "./server";
+import './instrumentation.js'
+import { startServer } from "./server.js";
 
 
 

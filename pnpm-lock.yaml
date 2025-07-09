@@ -42,8 +42,8 @@ importers:
         specifier: ^3.16.12
         version: 3.16.12
       exa-js:
-        specifier: ^1.8.19
-        version: 1.8.19(ws@8.18.3)
+        specifier: ^1.0.12
+        version: 1.0.12
       langfuse:
         specifier: ^3.38.4
         version: 3.38.4
@@ -1794,10 +1794,6 @@ packages:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
     engines: {node: '>=0.3.1'}
 
-  dotenv@16.4.7:
-    resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
-    engines: {node: '>=12'}
-
   dotenv@17.1.0:
     resolution: {integrity: sha512-tG9VUTJTuju6GcXgbdsOuRhupE8cb4mRgY5JLRCh4MtGoVo3/gfGUtOMwmProM6d0ba2mCFvv+WrpYJV6qgJXQ==}
     engines: {node: '>=12'}
@@ -1899,8 +1895,8 @@ packages:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
 
-  exa-js@1.8.19:
-    resolution: {integrity: sha512-0H/8JIM37UoQbAuvzOkSdWBJDu6MJL+GGyaQqLSTlTcgnoQIkNblf/MTnbRiJMYJB1kM+soSqhKHWVFAJR6tPg==}
+  exa-js@1.0.12:
+    resolution: {integrity: sha512-4oDvjl1966qy1BwjuGm/q/k2gZomS8WhpcuiXyn672cTmEfaRIwQnAbXBznuqzT1WaWeHfJXGTeeboaW41OCiw==}
 
   execa@5.1.1:
     resolution: {integrity: sha512-8uSpZZocAZRBAPIEINJj3Lo9HyGitllczc27Eh5YYojjMFMn8yHMDMaUHE2Jqfq05D/wucwI4JGURyXt1vchyg==}
@@ -2483,18 +2479,6 @@ packages:
   onetime@5.1.2:
     resolution: {integrity: sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==}
     engines: {node: '>=6'}
-
-  openai@5.8.3:
-    resolution: {integrity: sha512-IdotKmquCnpouTRvF9xRXVhMx6K5Sc8zkD6Usf+so+NTQ+qiJ8bLSCd7LBb8b/Rof7uYltlSxJhNp+spphKI4Q==}
-    hasBin: true
-    peerDependencies:
-      ws: ^8.18.0
-      zod: ^3.23.8
-    peerDependenciesMeta:
-      ws:
-        optional: true
-      zod:
-        optional: true
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -4879,8 +4863,6 @@ snapshots:
   diff@4.0.2:
     optional: true
 
-  dotenv@16.4.7: {}
-
   dotenv@17.1.0: {}
 
   eastasianwidth@0.2.0: {}
@@ -5014,16 +4996,11 @@ snapshots:
 
   esutils@2.0.3: {}
 
-  exa-js@1.8.19(ws@8.18.3):
+  exa-js@1.0.12:
     dependencies:
       cross-fetch: 4.1.0
-      dotenv: 16.4.7
-      openai: 5.8.3(ws@8.18.3)(zod@3.25.76)
-      zod: 3.25.76
-      zod-to-json-schema: 3.24.6(zod@3.25.76)
     transitivePeerDependencies:
       - encoding
-      - ws
 
   execa@5.1.1:
     dependencies:
@@ -5777,11 +5754,6 @@ snapshots:
   onetime@5.1.2:
     dependencies:
       mimic-fn: 2.1.0
-
-  openai@5.8.3(ws@8.18.3)(zod@3.25.76):
-    optionalDependencies:
-      ws: 8.18.3
-      zod: 3.25.76
 
   optionator@0.9.4:
     dependencies:

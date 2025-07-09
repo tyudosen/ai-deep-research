@@ -1,6 +1,6 @@
 import { Data, Effect, pipe, Schema, Config } from "effect";
 import Exa from 'exa-js'
-import { ERROR_TYPES, SEARCH_CONFIG } from "../constants";
+import { ERROR_TYPES, SEARCH_CONFIG } from "../constants/index.js";
 
 const WebSearchResultSchema = Schema.Struct({
 	title: Schema.NonEmptyString,
@@ -58,7 +58,7 @@ export class WebSearch extends Effect.Service<WebSearch>()("WebSearch",
 				Effect.tryPromise({
 					try: () => exa.searchAndContents(query, {
 						numResults: SEARCH_CONFIG.DEFAULT_NUM_RESULTS,
-						livecrawl: SEARCH_CONFIG.LIVECRAWL
+						// livecrawl: SEARCH_CONFIG.LIVECRAWL
 					}),
 					catch: (e) => new WebSearchError({ cause: e })
 				}),

@@ -1,5 +1,5 @@
-import { Learning } from "../services/Ai";
-import { WebSearchResult } from "../services/WebSearch";
+import type { Learning } from "../services/Ai.js";
+import type { WebSearchResult } from "../services/WebSearch.js";
 
 export type Research = {
         query: string | undefined

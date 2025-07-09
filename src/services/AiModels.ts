@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { openai as sdkopenai } from "@ai-sdk/openai";
 import { ollama as sdkollama } from 'ollama-ai-provider';
-import { OpenAIChatModelId } from "@ai-sdk/openai/internal";
+import type { OpenAIChatModelId } from "@ai-sdk/openai/internal";
 
 type OllamaChatModelId = Parameters<typeof sdkollama>[0]
 

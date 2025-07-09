@@ -1,38 +1,28 @@
 {
   "compilerOptions": {
-    // Basic
-    "target": "ES2022", // modern runtime
-    "module": "NodeNext", // for Node.js ≤ 18; switch to "ESNext" + "type":"module" if desired
-    "rootDir": "src", // your source root
-    "outDir": "dist", // emit compiled files here
-    "declaration": true, // generate .d.ts for published packages
-    "sourceMap": true, // map for debugging in prod
-    // Strictness
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "es2022",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
     "strict": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "moduleResolution": "bundler",
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    // Module resolution & interop
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    // Speed
-    "skipLibCheck": true,
-    // Isolated modules & tools
-    "isolatedModules": true, // required by tsx / babel
-    "moduleResolution": "NodeNext",
-    "allowJs": false // typically false in prod TS codebase
+    "module": "ESNext",
+    "outDir": "dist",
+    "lib": [
+      "es2022"
+    ]
   },
   "include": [
-    "src/**/*"
+    "**/*.ts",
+    "**/*.tsx"
   ],
   "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts"
+    "node_modules"
   ]
 }

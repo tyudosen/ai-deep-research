@@ -1,22 +1,20 @@
 import { tool } from "ai"
-import { generateEnum, generateObject, generateText } from "./utils"
+import { generateEnum, generateObject, generateText } from "./utils.js"
 import {
 	Effect,
 	Schema
 } from "effect"
 import z from "zod"
-import { AiModels } from "./AiModels"
-import {
-	WebSearch,
-	WebSearchResult
-} from "./WebSearch"
+import { AiModels } from "./AiModels.js"
+import { WebSearch } from "./WebSearch.js"
+import type { WebSearchResult } from "./WebSearch.js"
 import {
 	SEARCH_CONFIG,
 	SYSTEM_PROMPTS,
 	TOOL_DESCRIPTIONS,
 	PROMPTS
-} from "../constants"
-import { runtime } from "./runtime"
+} from "../constants/index.js"
+import { runtime } from "./runtime.js"
 
 const GenerateSearchQueriesObject = Schema.Struct({
 	queries: Schema.Array(Schema.String).pipe(Schema.minItems(SEARCH_CONFIG.MIN_QUERIES), Schema.maxItems(SEARCH_CONFIG.MAX_QUERIES))
@@ -84,7 +82,11 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 							parameters: z.object({
 								queryParam: z.string().min(1),
 							}),
-							execute: ({ queryParam }) => Effect.gen(function* () {
+							execute: ({ queryParam }): Promise<{
+								readonly title: string;
+								readonly url: string;
+								readonly content: string;
+							}[] | never[]> => Effect.gen(function* () {
 								const searchResults = yield* searchWeb(queryParam)
 
 								pendingSearchResults.push(...searchResults)
@@ -92,7 +94,7 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 
 								return searchResults
 
-							}).pipe(Effect.runPromise)
+							}).pipe(runtime.runPromise)
 						}),
 						evaluate: tool({
 							description: TOOL_DESCRIPTIONS.EVALUATE,
