@@ -1,23 +1,20 @@
 import { tool } from "ai"
-import { generateEnum, generateObject, generateText } from "./utils"
+import { generateEnum, generateObject, generateText } from "./utils.js"
 import {
 	Effect,
-	pipe,
 	Schema
 } from "effect"
 import z from "zod"
-import { AiModels } from "./AiModels"
+import { AiModels } from "./AiModels.js"
+import { WebSearch } from "./WebSearch.js"
+import type { WebSearchResult } from "./WebSearch.js"
 import {
-	WebSearch,
-	WebSearchResult
-} from "./WebSearch"
-import {
-	OPENAI_MODELS,
 	SEARCH_CONFIG,
 	SYSTEM_PROMPTS,
 	TOOL_DESCRIPTIONS,
 	PROMPTS
-} from "../constants"
+} from "../constants/index.js"
+import { runtime } from "./runtime.js"
 
 const GenerateSearchQueriesObject = Schema.Struct({
 	queries: Schema.Array(Schema.String).pipe(Schema.minItems(SEARCH_CONFIG.MIN_QUERIES), Schema.maxItems(SEARCH_CONFIG.MAX_QUERIES))
@@ -28,6 +25,8 @@ const GenerateLearningsObject = Schema.Struct({
 	learning: Schema.String,
 	followUpQuestions: Schema.Array(Schema.String)
 })
+export type Learning = typeof GenerateLearningsObject.Type;
+
 const generateLearningsObjectDecoder = Schema.decodeUnknown(GenerateLearningsObject)
 
 // const ToolParameterObject = Schema.Struct({
@@ -44,19 +43,27 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 				const { openai } = yield* AiModels;
 
 				const { object: queries } = yield* generateObject({
-					model: openai(OPENAI_MODELS.O1),
+					model: openai('gpt-4.1-mini'),
 					prompt: `Generate ${n} search queries for the following query: ${query}`,
 
 				}, z.object({
 					queries: z.array(z.string()).min(SEARCH_CONFIG.MIN_QUERIES).max(SEARCH_CONFIG.MAX_QUERIES),
 				}), {
 					calledFrom: 'ai-service-generateSearchQueries-function'
-				})
+				}).pipe(
+					Effect.catchTags({
+						GenerateObjectError: () => Effect.succeed({ object: { queries: [] } })
+					})
+				)
 
-				return yield* generateSearchQueriesObjectDecoder(queries)
+				return yield* generateSearchQueriesObjectDecoder(queries).pipe(
+					Effect.catchTags({
+						ParseError: () => Effect.succeed({ queries: [] })
+					})
+				)
 			})
 
-			const searchAndProcess = Effect.fn("searchAndProcess")(function* (query: string) {
+			const searchAndProcess = Effect.fn("searchAndProcess")(function* (query: string, accumulatedSources: WebSearchResult[]) {
 				const pendingSearchResults: WebSearchResult[] = []
 				const finalSearchResults: WebSearchResult[] = []
 				const { openai } = yield* AiModels;
@@ -65,7 +72,7 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 
 
 				yield* generateText({
-					model: openai(OPENAI_MODELS.O1),
+					model: openai('gpt-4.1-mini'),
 					prompt: `Search the web for information about ${query}`,
 					system: SYSTEM_PROMPTS.RESEARCHER,
 					maxSteps: SEARCH_CONFIG.MAX_STEPS,
@@ -75,25 +82,33 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 							parameters: z.object({
 								queryParam: z.string().min(1),
 							}),
-							execute: ({ queryParam }) => pipe(
-								queryParam,
-								searchWeb,
-								Effect.tap((res) => pendingSearchResults.push(...res)),
-								Effect.andThen((res) => res),
-								Effect.runPromise
-							)
+							execute: ({ queryParam }): Promise<{
+								readonly title: string;
+								readonly url: string;
+								readonly content: string;
+							}[] | never[]> => Effect.gen(function* () {
+								const searchResults = yield* searchWeb(queryParam)
+
+								pendingSearchResults.push(...searchResults)
+								yield* Effect.log(`searchResults count: ${searchResults.length}`)
+
+								return searchResults
+
+							}).pipe(runtime.runPromise)
 						}),
 						evaluate: tool({
 							description: TOOL_DESCRIPTIONS.EVALUATE,
 							parameters: z.object({}),
-							execute: () => Effect.gen(function* () {
+							execute: (): Promise<string> => Effect.gen(function* () {
 								const pendingResult = pendingSearchResults.pop()!
 								const { object: evaluation } = yield* generateEnum({
-									model: openai(OPENAI_MODELS.O1),
-									prompt: PROMPTS.EVALUATE_QUERIES({ query, pendingResult })
+									model: openai('gpt-4.1-mini'),
+									prompt: PROMPTS.EVALUATE_QUERIES({ query, pendingResult, accumulatedSources })
 								}, ['relevant', 'irrelevant'], {
 									calledFrom: 'ai-service-evaluate-tool-function'
 								})
+
+								yield* Effect.log(`Evaluation --> ${evaluation}`)
 
 								if (evaluation === 'relevant') {
 									finalSearchResults.push(pendingResult)
@@ -106,13 +121,26 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 									? 'Search results are irrelevant. Please search again with a more specific query.'
 									: 'Search results are relevant. End research for this query.'
 
-							}).pipe(Effect.runPromise)
+							}).pipe(
+								Effect.catchTags({
+									GenerateObjectError: (_error) => {
+										Effect.log(`Evaluate failed: ${_error}`);
+										return Effect.succeed('GenerateObjectError so this result is irrelevant')
+									}
+								}),
+								runtime.runPromise)
 						})
 					}
 
 				}, {
 					calledFrom: 'ai-service-searchAndProcess-function'
-				})
+				}).pipe(
+					Effect.catchTags({
+						GenerateTextError: () => Effect.succeed('')
+					})
+				)
+
+				yield* Effect.log(`finalSearchResult: ${finalSearchResults.length}`)
 
 				return finalSearchResults;
 
@@ -126,12 +154,29 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 					followUpQuestions: z.array(z.string())
 				}), {
 					calledFrom: 'ai-service-generateLearnings-function'
-				})
+				}).pipe(
+					Effect.catchAll(() => Effect.succeed({
+						object: {
+							learnings: {
+								learning: '',
+								followUpQuestions: []
+
+							}
+						}
+					}))
+				)
 
 
-				return yield* generateLearningsObjectDecoder(learnings)
+				return yield* generateLearningsObjectDecoder(learnings).pipe(
+					Effect.catchAll(() => Effect.succeed({
+						learning: '',
+						followUpQuestions: []
+
+					}))
+				)
 
 			})
+
 
 
 			return {
@@ -143,6 +188,3 @@ export class Ai extends Effect.Service<Ai>()("AiService",
 		dependencies: [AiModels.Default]
 	}
 ) { }
-
-
-

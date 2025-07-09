@@ -1,14 +1,14 @@
 import { Layer, ManagedRuntime, ConfigProvider } from "effect";
-import { AiModels } from "./AiModels";
-import { Ai } from "./Ai";
-import { liveConfig } from "../configs/liveConfig";
-import { WebSearch } from "./WebSearch";
+import { AiModels } from "./AiModels.js";
+import { Ai } from "./Ai.js";
+import { liveConfig } from "../configs/liveConfig.js";
+import { WebSearch } from "./WebSearch.js";
 
 const LiveConfigProvider = Layer.setConfigProvider(
 	ConfigProvider.fromMap(liveConfig)
 )
 
-const appLayers = Layer.mergeAll(
+export const appLayers = Layer.mergeAll(
 	AiModels.Default,
 	Ai.Default,
 	WebSearch.Default,

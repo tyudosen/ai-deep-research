@@ -1,4 +1,4 @@
-import { env } from "../env";
+import { env } from "../env.js";
 
 export const liveConfig = new Map([
 	['OPENAI_API_KEY', env.OPENAI_API_KEY],

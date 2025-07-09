@@ -1,8 +1,9 @@
 import { generateObject as aiGenerateObject, generateText as aiGenerateText } from "ai";
 import { Data, Effect } from "effect";
-import { ERROR_TYPES, OPENAI_MODELS } from "../constants";
+import { ERROR_TYPES } from "../constants/index.js";
+import type { Research } from "../constants/index.js";
 import { ZodSchema } from "zod";
-import { AiModels } from "./AiModels";
+import { AiModels } from "./AiModels.js";
 import { randomUUID } from "crypto";
 import { Langfuse } from "langfuse";
 
@@ -29,12 +30,19 @@ class GenerateTextError extends Data.TaggedError(ERROR_TYPES.GENERATE_TEXT_ERROR
 
 type GenerateObjectOptions = Parameters<typeof aiGenerateObject>[0]
 type GenerateTextOptions = Parameters<typeof aiGenerateText>[0];
-type Options =
+type ObjectOptions =
 	// start by dropping `output`, `model` and `schema` all at once
 	Omit<GenerateObjectOptions, 'output' | 'model'>
 	// now re‐add `model` and `schema`, but make them optional
 	& Partial<Pick<GenerateObjectOptions, 'model'>>
 	;
+type TextOptions =
+	// start by dropping `output`, `model` and `schema` all at once
+	Omit<GenerateTextOptions, 'output' | 'model'>
+	// now re‐add `model` and `schema`, but make them optional
+	& Partial<Pick<GenerateTextOptions, 'model'>>
+	;
+
 
 interface TraceMetadata {
 	calledFrom: string;
@@ -44,14 +52,14 @@ interface TraceMetadata {
 
 
 
-export const generateObject = Effect.fn("generateObject")(function* (options: Options, schema: ZodSchema, metadata: TraceMetadata) {
+export const generateObject = Effect.fn("generateObject")(function* (options: ObjectOptions, schema: ZodSchema, metadata: TraceMetadata) {
 	const { openai } = yield* AiModels
 	return yield* Effect.tryPromise({
 		try: () => {
 
 			const res = aiGenerateObject({
-				...options,
-				model: openai(OPENAI_MODELS.O1),
+
+				model: openai('gpt-4.1-mini'),
 				output: 'object',
 				schema,
 				experimental_telemetry: {
@@ -63,6 +71,7 @@ export const generateObject = Effect.fn("generateObject")(function* (options: Op
 						langfuseUpdateParent: false
 					}
 				},
+				...options,
 			})
 
 			return res
@@ -73,12 +82,14 @@ export const generateObject = Effect.fn("generateObject")(function* (options: Op
 })
 
 
-export const generateEnum = Effect.fn("generateEnum")(function* (options: Omit<GenerateObjectOptions, 'output'>, enums: string[], metadata: TraceMetadata) {
+export const generateEnum = Effect.fn("generateEnum")(function* (options: ObjectOptions, enums: string[], metadata: TraceMetadata) {
+	const { openai } = yield* AiModels
 	return yield* Effect.tryPromise({
 		try: () => {
 
 			const res = aiGenerateObject({
-				...options,
+
+				model: openai('gpt-4.1-mini'),
 				output: 'enum',
 				enum: enums,
 				experimental_telemetry: {
@@ -90,6 +101,7 @@ export const generateEnum = Effect.fn("generateEnum")(function* (options: Omit<G
 						langfuseUpdateParent: false
 					}
 				},
+				...options,
 			})
 
 
@@ -101,12 +113,13 @@ export const generateEnum = Effect.fn("generateEnum")(function* (options: Omit<G
 })
 
 
-export const generateText = Effect.fn("generateText")(function* (options: GenerateTextOptions, metadata: TraceMetadata) {
+export const generateText = Effect.fn("generateText")(function* (options: TextOptions, metadata: TraceMetadata) {
+	const { openai } = yield* AiModels;
 	return yield* Effect.tryPromise({
 		try: () => {
 
 			const res = aiGenerateText({
-				...options,
+				model: openai('gpt-4.1-mini'),
 				experimental_telemetry: {
 					isEnabled: true,
 					functionId: `generate-text-function-${randomUUID()}`,
@@ -116,6 +129,7 @@ export const generateText = Effect.fn("generateText")(function* (options: Genera
 						langfuseUpdateParent: false
 					}
 				},
+				...options,
 			})
 
 
@@ -124,3 +138,28 @@ export const generateText = Effect.fn("generateText")(function* (options: Genera
 		catch: (error) => new GenerateTextError({ error })
 	})
 })
+
+export const generateReport = Effect.fn('generate-report')(function* (research: Research, metadata: TraceMetadata) {
+	const { openai } = yield* AiModels;
+	const { text } = yield* generateText({
+		model: openai('gpt-4.1-mini'),
+		prompt: 'Generate a report based on the following research data:\n\n' +
+			JSON.stringify(research, null, 2),
+		experimental_telemetry: {
+			isEnabled: true,
+			functionId: `generate-object-function-${randomUUID()}`,
+			metadata: {
+				...metadata,
+				langfuseTraceId: parentTraceId,
+				langfuseUpdateParent: false
+			}
+		},
+	}, {
+		calledFrom: 'generate-report-ai-service'
+	})
+
+	return text
+
+
+})
+
