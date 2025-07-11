@@ -1,7 +1,5 @@
-import { Effect, Layer, pipe } from "effect";
+import { Effect, pipe } from "effect";
 import { HttpApiBuilder } from "@effect/platform";
-import { DeepResearchApi } from "../api/deep-research.js";
-import { appLayers } from "../services/runtime.js";
 import { Ai } from "../services/Ai.js";
 import { HttpApiDecodeError } from "@effect/platform/HttpApiError";
 import type { Research } from "../constants/index.js";
@@ -9,6 +7,7 @@ import { SEARCH_CONFIG, PROMPTS } from "../constants/index.js";
 import { AiModels } from "../services/AiModels.js";
 import { generateReport } from "../services/utils.js";
 import { WebSearch } from "../services/WebSearch.js";
+import { Api } from "../api/index.js";
 
 const deepResearch: (
 	prompt: string,
@@ -100,7 +99,7 @@ const deepResearch: (
 
 
 
-export const DeepResearchApiGroupLive = HttpApiBuilder.group(DeepResearchApi, "DeepResearchApiGroup", (handlers) =>
+export const DeepResearchApiGroupLive = HttpApiBuilder.group(Api, "DeepResearchApiGroup", (handlers) =>
 	handlers.handle(
 		"research",
 		({ urlParams }) => {
@@ -132,6 +131,5 @@ export const DeepResearchApiGroupLive = HttpApiBuilder.group(DeepResearchApi, "D
 
 		}
 	)
-).pipe(Layer.provide(appLayers));
+)
 
-export const DeepResearchApiLive = HttpApiBuilder.api(DeepResearchApi).pipe(Layer.provide(DeepResearchApiGroupLive));
