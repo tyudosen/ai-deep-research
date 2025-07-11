@@ -14,6 +14,4 @@ export class DeepResearchApiGroup extends HttpApiGroup.make("DeepResearchApiGrou
 	)
 { }
 
-export class DeepResearchApi extends HttpApi.make("DeepResearchApi")
-	.add(DeepResearchApiGroup)
-{ }
+
